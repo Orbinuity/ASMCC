@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "AssemblyCraftCompiler"
+version = "1.2.0"
+authors = [
+    { name="Orbinuity", email="orbinuity@ratgers.nl" },
+]
+description = "The official Assembly Craft compiler"
+readme = "README.md"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.7"
+dependencies = []
+
+[project.urls]
+Donate = "https://www.patreon.com/cw/Orbinuity"
+Homepage = "https://orbinuity.nl/project#ASMCC"
+Source = "https://github.com/orbinuity/ASMCC"
