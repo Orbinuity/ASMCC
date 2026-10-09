@@ -1,4 +1,4 @@
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 import struct
 import re
 
@@ -239,7 +239,7 @@ class AssemblyCraftCompiler:
         key_table = bytearray()
         data_payload = bytearray()
 
-        base_offset = 10 + (len(self.variables) * 22)
+        base_offset = 10 + (len(self.variables) * 25)
         current_data_offset = base_offset
 
         for var_name, info in self.variables.items():
