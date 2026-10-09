@@ -1,4 +1,4 @@
-__version__ = "1.2.0"
+__version__ = "2.0.0"
 import struct
 import re
 
@@ -6,7 +6,7 @@ class AssemblyCraftCompilerError(Exception):
     pass
 
 class AssemblyCraftCompiler:
-    MAGIC_HEADER = (b"ACX"+__version__.split(".")[0].encode())
+    MAGIC_HEADER = (b"ACX" + __version__.split(".")[0].encode())
 
     ALLOC_SIZES = {
         'ds': 16,
@@ -114,7 +114,22 @@ class AssemblyCraftCompiler:
                     f"Line {line_num}: Duplicate variable definition '{var_name}'."
                 )
 
-            alloc_len = self.ALLOC_SIZES[size_type]
+            # Check if values_str is a single integer specifying buffer allocation size (e.g. 'disk_buffer dm 512')
+            single_num_match = re.fullmatch(r'^(\d+|0x[0-9a-fA-F]+)$', values_str.strip())
+            if single_num_match:
+                val = int(single_num_match.group(1), 0)
+                if size_type == 'dm' or val > 255:
+                    alloc_len = val
+                    padded_data = bytes(alloc_len)
+                    self.variables[var_name] = {
+                        'id': var_id,
+                        'size_type': size_type,
+                        'alloc_len': alloc_len,
+                        'data': padded_data
+                    }
+                    var_id += 1
+                    continue
+
             raw_bytes = bytearray()
             tokens = re.findall(r'"([^"]*)"|(\d+|0x[0-9a-fA-F]+)', values_str)
 
@@ -134,18 +149,19 @@ class AssemblyCraftCompiler:
                         ) from e
                 elif num_val:
                     val = int(num_val, 0)
-                    if not (0 <= val <= 255):
-                        raise AssemblyCraftCompilerError(
-                            f"Line {line_num}: Byte literal {val} out of range (0-255) in '{var_name}'."
-                        )
-                    raw_bytes.append(val)
+                    if size_type == 'db':
+                        if not (0 <= val <= 255):
+                            raise AssemblyCraftCompilerError(
+                                f"Line {line_num}: Byte literal {val} out of range (0-255) in '{var_name}'."
+                            )
+                        raw_bytes.append(val)
+                    elif size_type == 'ds':
+                        raw_bytes.extend(struct.pack("<H", val & 0xFFFF))
+                    elif size_type == 'dm':
+                        raw_bytes.extend(struct.pack("<I", val & 0xFFFFFFFF))
 
-            if len(raw_bytes) > alloc_len:
-                raise AssemblyCraftCompilerError(
-                    f"Line {line_num}: Initializer size ({len(raw_bytes)} bytes) exceeds allocated "
-                    f"capacity for '{size_type}' ({alloc_len} bytes) in variable '{var_name}'."
-                )
-
+            min_alloc = self.ALLOC_SIZES[size_type]
+            alloc_len = max(len(raw_bytes), min_alloc)
             padded_data = bytes(raw_bytes).ljust(alloc_len, b'\x00')
 
             self.variables[var_name] = {
