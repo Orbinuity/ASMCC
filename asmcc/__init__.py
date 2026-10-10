@@ -1,4 +1,4 @@
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 import struct
 import re
 
@@ -244,7 +244,7 @@ class AssemblyCraftCompiler:
 
         for var_name, info in self.variables.items():
             encoded_name = var_name.encode('utf-8')[:16].ljust(16, b'\x00')
-            key_table += struct.pack("<B16sIB", info['id'], encoded_name, current_data_offset, info['alloc_len'])
+            key_table += struct.pack("<B16sIH", info['id'], encoded_name, current_data_offset, info['alloc_len'])
             data_payload += info['data']
             current_data_offset += info['alloc_len']
 
