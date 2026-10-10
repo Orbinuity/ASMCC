@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "AssemblyCraftCompiler"
-version = "2.0.2"
+version = "2.0.3"
 authors = [
     { name="Orbinuity", email="orbinuity@ratgers.nl" },
 ]
